@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# PROVIDE: fartd
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="fartd"
+rcvar="fartd_enable"
+command="/usr/local/sbin/${name}"
+
+load_rc_config $name
+run_rc_command "$1"
+
