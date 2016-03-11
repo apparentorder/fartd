@@ -154,6 +154,11 @@ int main (int argc, char **argv) {
 	if (gpio == GPIO_INVALID_HANDLE)
 		err(69, "gpio_open() failed");
 
+	gpio_pin_input(gpio, detectpin);
+	gpio_pin_output(gpio, ledgreen);
+	gpio_pin_output(gpio, ledyellow);
+	gpio_pin_output(gpio, ledred);
+
 	if (!is_daemon)
 		setbuf(stdout, NULL);
 	else {
@@ -172,11 +177,6 @@ int main (int argc, char **argv) {
 		setled(15);
 		usleep(sleep_main * 2);
 	}
-
-	gpio_pin_input(gpio, detectpin);
-	gpio_pin_output(gpio, ledgreen);
-	gpio_pin_output(gpio, ledyellow);
-	gpio_pin_output(gpio, ledred);
 
 	if (!is_daemon)
 		printf("initial value: ");
