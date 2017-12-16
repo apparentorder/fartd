@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2016, Dennis Koegel
+ * Copyright (c) 2016, 2017, Dennis Koegel
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sysexits.h>
 #include <syslog.h>
 #include <time.h>
 #include <unistd.h>
@@ -43,6 +44,8 @@
 
 const int sleep_calibrate = 0;
 const int sleep_main = 500000;
+const char *statusfile_path = "/var/run/fartd_metrics";
+      int   statusfile_enabled = 1;
 
 #define LEVEL_GREEN   6
 #define LEVEL_YELLOW  10
@@ -110,6 +113,25 @@ int calibrate() {
 		printf(" OMGWTF.\n");
 
 	return 16;
+}
+
+void statusfile (int air, const char *airstr) {
+	FILE *f;
+
+	if (!statusfile_enabled)
+		return;
+
+	f = fopen(statusfile_path, "w");
+	if (f == NULL)
+		err(EX_CANTCREAT, "Opening statusfile %s", statusfile_path);
+
+	/*
+	 * we don't handle the case of (air == LEVEL_UNKNOWN) here, because for
+	 * graphing purposes, LEVEL_UNKNOWN (16) still is more useful than NaN
+	 */
+	fprintf(f, "air_quality_value %d\n", air);
+
+	fclose(f);
 }
 
 void setled(int air) {
@@ -182,6 +204,7 @@ int main (int argc, char **argv) {
 		printf("initial value: ");
 
 	prevair = air = calibrate();
+	statusfile(air, airstr);
 
 	if (is_daemon) {
 		airstr = airtostr(air);
@@ -216,6 +239,7 @@ int main (int argc, char **argv) {
 
 		syslog(LOG_NOTICE, "Air quality changed: %s -> %s",
 			prevairstr, airstr);
+		statusfile(air, airstr);
 
 		free(airstr);
 		free(prevairstr);
